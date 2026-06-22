@@ -1,5 +1,7 @@
 # CiteCheck
 
+[![CI](https://github.com/marcus-castillo/argus/actions/workflows/ci.yml/badge.svg)](https://github.com/marcus-castillo/argus/actions/workflows/ci.yml)
+
 **Production-quality legal citation validator SaaS.**
 
 Lawyers upload briefs, motions, and memoranda. CiteCheck extracts legal
