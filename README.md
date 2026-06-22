@@ -1,10 +1,10 @@
-# CiteCheck
+# argus
 
 [![CI](https://github.com/marcus-castillo/argus/actions/workflows/ci.yml/badge.svg)](https://github.com/marcus-castillo/argus/actions/workflows/ci.yml)
 
 **Production-quality legal citation validator SaaS.**
 
-Lawyers upload briefs, motions, and memoranda. CiteCheck extracts legal
+Lawyers upload briefs, motions, and memoranda. argus extracts legal
 citations, verifies that cited cases/statutes/regulations actually exist,
 checks metadata consistency (volume, reporter, page, year, court), and flags
 suspicious or **hallucinated** citations — the kind increasingly produced by
@@ -31,7 +31,7 @@ generative-AI legal drafting.
 
 ## Architecture
 
-CiteCheck follows **clean architecture** with strict layering. Dependencies
+argus follows **clean architecture** with strict layering. Dependencies
 point inward; the domain (`app/citation`) knows nothing about the database,
 HTTP, or the framework.
 
@@ -89,7 +89,7 @@ frontend polls document status.
 ## Repository layout
 
 ```
-citecheck/
+argus/
 ├── docker-compose.yml
 ├── README.md
 ├── .github/workflows/ci.yml
@@ -155,7 +155,7 @@ Confidence aggregation and severity weighting live in
 ## Quick start (Docker)
 
 ```bash
-git clone <repo> citecheck && cd citecheck
+git clone <repo> argus && cd argus
 cp backend/.env.example backend/.env        # optional: tweak settings
 docker compose up --build
 ```
@@ -182,7 +182,7 @@ suspicious, and hallucinated citations side by side.
 cd backend
 python -m venv .venv && . .venv/Scripts/activate    # Windows
 pip install -e ".[dev]"
-export DATABASE_URL=postgresql+asyncpg://citecheck:citecheck@localhost:5432/citecheck
+export DATABASE_URL=postgresql+asyncpg://argus:argus@localhost:5432/argus
 alembic upgrade head
 python -m seed.seed
 uvicorn app.main:app --reload
