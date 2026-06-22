@@ -1,0 +1,90 @@
+name: citecheck
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: citecheck
+      POSTGRES_PASSWORD: citecheck
+      POSTGRES_DB: citecheck
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U citecheck -d citecheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://citecheck:citecheck@db:5432/citecheck
+    command: sh -c "python -m scripts.wait_for_db && alembic upgrade head"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  seed:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://citecheck:citecheck@db:5432/citecheck
+      UPLOAD_DIR: /data/uploads
+    command: python -m seed.seed
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://citecheck:citecheck@db:5432/citecheck
+      UPLOAD_DIR: /data/uploads
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://citecheck:citecheck@db:5432/citecheck
+      UPLOAD_DIR: /data/uploads
+    command: python -m app.workers.worker
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  uploads:
